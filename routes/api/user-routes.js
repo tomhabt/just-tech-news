@@ -85,7 +85,7 @@ router.put('/:id', (req, res) => {
         res.status(404).json({ message: 'No user found with this id' });
         return;
       }
-      res.json(dbUserData);
+      res.json({user:dbUserData, message:'user deleted'});
     })
     .catch(err => {
       console.log(err);
