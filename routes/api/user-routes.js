@@ -1,7 +1,8 @@
 const router = require('express').Router();
-const { User } = require('../../models');
+const { User, Post, Vote } = require('../../models');
 
 // get all users
+// GET /api/users
 router.get('/', (req, res) => {
   User.findAll({
     attributes: { exclude: ['password'] }
@@ -13,12 +14,25 @@ router.get('/', (req, res) => {
     });
 });
 
+// GET /api/users/1
 router.get('/:id', (req, res) => {
   User.findOne({
     attributes: { exclude: ['password'] },
     where: {
       id: req.params.id
-    }
+    },
+    include: [
+      {
+        model: Post,
+        attributes: ['id', 'title', 'post_url', 'created_at']
+      },
+      {
+        model: Post,
+        attributes: ['title'],
+        through: Vote,
+        as: 'voted_posts'
+      }
+    ]
   })
     .then(dbUserData => {
       if (!dbUserData) {
@@ -33,6 +47,7 @@ router.get('/:id', (req, res) => {
     });
 });
 
+// POST /api/users
 router.post('/', (req, res) => {
   // expects {username: 'Lernantino', email: 'lernantino@gmail.com', password: 'password1234'}
   User.create({
@@ -47,6 +62,7 @@ router.post('/', (req, res) => {
     });
 });
 
+// POST /api/users/login
 router.post('/login', (req, res) => {
   // expects {email: 'lernantino@gmail.com', password: 'password1234'}
   User.findOne({
@@ -70,6 +86,8 @@ router.post('/login', (req, res) => {
   });
 });
 
+
+// PUT /api/users/1
 router.put('/:id', (req, res) => {
   // expects {username: 'Lernantino', email: 'lernantino@gmail.com', password: 'password1234'}
 
@@ -85,7 +103,7 @@ router.put('/:id', (req, res) => {
         res.status(404).json({ message: 'No user found with this id' });
         return;
       }
-      res.json({user:dbUserData, message:'user deleted'});
+      res.json({user:dbUserData, message:'user info. updated'});
     })
     .catch(err => {
       console.log(err);
@@ -93,6 +111,7 @@ router.put('/:id', (req, res) => {
     });
 });
 
+// DELETE /api/users/1
 router.delete('/:id', (req, res) => {
   User.destroy({
     where: {
@@ -104,7 +123,7 @@ router.delete('/:id', (req, res) => {
         res.status(404).json({ message: 'No user found with this id' });
         return;
       }
-      res.json(dbUserData);
+      res.json({user:dbUserData, message:'user info. updated'});
     })
     .catch(err => {
       console.log(err);
